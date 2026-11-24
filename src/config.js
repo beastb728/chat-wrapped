@@ -4,6 +4,6 @@ export const SITE_DOMAIN = 'beastb728.github.io/chat-wrapped';
 export const REPO_URL = 'https://github.com/beastb728/chat-wrapped';
 // GoatCounter site code (the "xyz" in xyz.goatcounter.com). Empty = no analytics,
 // no visit counter, and the site makes no requests to anyone but itself.
-export const GOATCOUNTER_CODE = '';
+export const GOATCOUNTER_CODE = 'beastb728';
 
 export const siteDomain = () => SITE_DOMAIN || location.host || 'chatwrapped.app';
