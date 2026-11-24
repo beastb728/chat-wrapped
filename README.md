@@ -19,6 +19,7 @@ No build step and no npm dependencies, so the code in this repo is exactly what 
 Any static host works (Cloudflare Pages, Netlify, GitHub Pages). Before deploying:
 
 - Set `SITE_DOMAIN` in `src/config.js`. That domain is printed on every share card.
+- Optional visit counter: create a free site at [goatcounter.com](https://www.goatcounter.com), turn on **Settings → "Allow adding visitor counts on your website"**, and put the site code in `GOATCOUNTER_CODE`. Leave it empty for no analytics at all.
 - Set `REPO_URL` so "Report format" links to your issues page.
 - Bump `VERSION` in `sw.js` when you change the list of cached files.
 - `_headers` sets the CSP and other security headers on Netlify and Cloudflare Pages. The pages also set the CSP in a `<meta>` tag.
@@ -40,8 +41,8 @@ Any static host works (Cloudflare Pages, Netlify, GitHub Pages). Before deployin
 
 ## Privacy guarantees (and how they're enforced)
 
-- The page's CSP has `connect-src 'none'`, so the browser blocks every fetch/XHR/WebSocket from the page.
-- The worker is started on page load, so after you choose a file the page makes **0** network requests. The badge at the bottom counts them using `PerformanceObserver`.
+- The page's CSP only allows connections to `*.goatcounter.com` (the optional visit counter), so the browser blocks requests to every other server.
+- The visit counter and the worker both start at page load, so after you choose a file the page makes **0** network requests. The badge at the bottom counts them using `PerformanceObserver`.
 - Cards contain counts, names, emojis and single "signature words" only. Both names and words can be switched off.
 - Who Said It? shows real messages on screen, so the host can preview and swap them first. The game result card shows scores only, never message text.
 
