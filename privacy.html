@@ -3,17 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'">
   <meta name="referrer" content="no-referrer">
   <title>How privacy works · Chat Wrapped</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="styles.css">
+  <script src="src/theme.js"></script>
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="./">Chat Wrapped</a>
-    <nav><a href="./">← Back to the app</a></nav>
+    <nav><a href="./">← Back to the app</a><button id="theme-toggle" class="theme-toggle" type="button">Dark</button></nav>
   </header>
   <main class="prose">
     <h1>Your chat never leaves your device.</h1>
@@ -38,7 +39,7 @@
     <h2>What we never do</h2>
     <ul>
       <li>No accounts, no login, and we will never ask for a password or phone number.</li>
-      <li>No cookies, no trackers, no ads.</li>
+      <li>No cookies, no trackers, no ads. The only thing the site remembers is your light/dark choice, stored in your browser on this device.</li>
       <li>Share cards contain statistics only, never the text of your messages. You can also hide everyone's names.</li>
     </ul>
 
