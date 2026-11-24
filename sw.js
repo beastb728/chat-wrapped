@@ -2,7 +2,7 @@
 // shared to the installed app from WhatsApp on Android (Web Share Target).
 // It never sends your chat anywhere: the shared file goes into a local cache
 // and is read (then deleted) by the page.
-const VERSION = 'cw-v7';
+const VERSION = 'cw-v8';
 const ASSETS = [
   './', 'index.html', 'privacy.html', 'styles.css', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png',
@@ -45,7 +45,9 @@ self.addEventListener('fetch', e => {
   e.respondWith((async () => {
     const cache = await caches.open(VERSION);
     try {
-      const res = await fetch(e.request);
+      // 'no-cache' revalidates with the server (cheap, via ETag) instead of
+      // trusting the browser's HTTP cache, which GitHub Pages sets to 10 minutes.
+      const res = await fetch(new Request(e.request.url, { cache: 'no-cache', credentials: 'same-origin' }));
       if (res.ok) cache.put(e.request, res.clone());
       return res;
     } catch {
