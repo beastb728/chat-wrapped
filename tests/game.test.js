@@ -66,3 +66,10 @@ test('emoji rounds carry a displayable emoji and clear winner', () => {
     assert.equal(r.counts[0][0], r.answer);
   }
 });
+
+test('near-duplicate messages are dealt only once', () => {
+  const { messages } = parseChat(generateSampleChat());
+  const g = buildGame(messages, { rounds: 25, seed: 3 });
+  const keys = [...g.rounds, ...g.reserve].filter(r => r.type === 'quote').map(r => r.text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim());
+  assert.equal(new Set(keys).size, keys.length);
+});

@@ -65,9 +65,11 @@ export function buildGame(messages, { rounds = 15, year = null, spicy = false, m
 
   const seen = new Set();
   const byAuthor = new Map(people.map(p => [p, []]));
-  for (const m of inYear) {
-    if (!byAuthor.has(m.author) || !isPlayable(m, { minWords, spicy })) continue;
-    const key = m.text.trim().toLowerCase();
+  // Shuffle first so a repeated line keeps a random occurrence, not the earliest.
+  const candidates = shuffle(inYear.filter(m => byAuthor.has(m.author) && isPlayable(m, { minWords, spicy })), r);
+  for (const m of candidates) {
+    // Treat messages that differ only by emoji/punctuation as duplicates.
+    const key = m.text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
     if (seen.has(key)) continue;
     seen.add(key);
     byAuthor.get(m.author).push(m);
