@@ -3,6 +3,8 @@
 // Your chat is never involved, and the network badge proves nothing is sent after you open one.
 import { GOATCOUNTER_CODE } from './config.js';
 
+const MIN_TO_SHOW = 500;
+
 export function initVisits(el) {
   if (!GOATCOUNTER_CODE || !navigator.onLine) return;
   const base = `https://${GOATCOUNTER_CODE}.goatcounter.com`;
@@ -19,7 +21,9 @@ export function initVisits(el) {
   fetch(`${base}/counter/TOTAL.json`, { credentials: 'omit', referrerPolicy: 'no-referrer' })
     .then(r => (r.ok ? r.json() : null))
     .then(d => {
-      if (!d?.count) return;
+      // A tiny number looks empty, so only show it once it's worth bragging about.
+      const n = Number(String(d?.count ?? '').replace(/\D/g, ''));
+      if (!(n >= MIN_TO_SHOW)) return;
       el.textContent = `🔥 ${d.count} visits so far`;
       el.hidden = false;
     })
