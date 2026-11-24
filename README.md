@@ -1,6 +1,9 @@
 # Chat Wrapped
 
-Spotify-Wrapped-style stat cards for your WhatsApp chats. It runs **entirely in your browser**: nothing is uploaded, there's no login, and it works in airplane mode.
+Fun, private experiences built from your WhatsApp chat export. It runs **entirely in your browser**: nothing is uploaded, there's no login, and it works in airplane mode.
+
+- **Chat Wrapped**: Spotify-Wrapped-style stat cards, sized for Status and Stories.
+- **Who Said It?**: a pass-and-play party game. See a real message from the chat and guess who sent it.
 
 ## Run it
 
@@ -30,6 +33,8 @@ Any static host works (Cloudflare Pages, Netlify, GitHub Pages). Before deployin
 | `src/cards.js` | Draws each 1080×1920 card on canvas. The same image is shown on screen and shared |
 | `src/worker.js` | Parsing and stats run in a Web Worker, so 100k+ message chats don't freeze the page |
 | `src/app.js` | UI, Web Share API (sends images straight to WhatsApp/Instagram), network-request counter |
+| `src/game.js` | Who Said It? round builder: skips links, emails, phone numbers, short and self-naming messages and (by default) spicy ones; balances rounds across people; adds emoji bonus rounds |
+| `src/game-ui.js` | Game screens: players and turns, host check (preview and swap messages without names), scoring, result card |
 | `src/sample.js` | Fictional demo chat |
 | `sw.js` | Offline cache and the Android share target ("Share to Chat Wrapped" from WhatsApp, once the app is installed) |
 
@@ -38,6 +43,7 @@ Any static host works (Cloudflare Pages, Netlify, GitHub Pages). Before deployin
 - The page's CSP has `connect-src 'none'`, so the browser blocks every fetch/XHR/WebSocket from the page.
 - The worker is started on page load, so after you choose a file the page makes **0** network requests. The badge at the bottom counts them using `PerformanceObserver`.
 - Cards contain counts, names, emojis and single "signature words" only. Both names and words can be switched off.
+- Who Said It? shows real messages on screen, so the host can preview and swap them first. The game result card shows scores only, never message text.
 
 ## Adding a new export format
 
@@ -45,4 +51,4 @@ If the parser fails on someone's export, the error screen shows a redacted sampl
 
 ## Not built yet
 
-Who Said It?, Chat Court and Instagram Wrapped.
+Chat Court and Instagram Wrapped.
