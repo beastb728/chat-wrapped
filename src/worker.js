@@ -43,6 +43,12 @@ self.onmessage = async ({ data }) => {
       case 'game':
         post({ type: 'game', game: buildGame(parsed.messages, { rounds: data.rounds, year: data.year, spicy: data.spicy }) });
         break;
+      case 'preview': {
+        // Stats from the fictional sample chat, for the hero cards on the home page.
+        const sample = parseChat(generateSampleChat());
+        post({ type: 'preview', stats: computeStats(sample.messages, { year: 2026 }) });
+        break;
+      }
       case 'clear':
         text = null;
         parsed = null;

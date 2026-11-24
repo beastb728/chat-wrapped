@@ -26,8 +26,8 @@ function renderNet() {
   const el = $('#net');
   const offline = navigator.onLine ? '' : ' · offline';
   el.textContent = armedAt == null
-    ? `Network requests are counted here. It stays at 0 after you open your chat${offline}`
-    : `${requestsSinceArmed} network request${requestsSinceArmed === 1 ? '' : 's'} since you opened your chat${offline}`;
+    ? `Network counter on${offline}`
+    : `${requestsSinceArmed} request${requestsSinceArmed === 1 ? '' : 's'} sent since you opened your chat${offline}`;
   el.classList.toggle('bad', requestsSinceArmed > 0);
 }
 if ('PerformanceObserver' in window) {
@@ -65,12 +65,23 @@ worker.onmessage = ({ data }) => {
     state.stats = data.stats;
     rebuildDeck(true);
     show('wrapped');
+  } else if (data.type === 'preview') {
+    drawHeroCards(data.stats);
   } else if (data.type === 'game') {
     game.onGame(data.game);
   } else if (data.type === 'error') {
     showError(data);
   }
 };
+
+// Home page hero: two real cards from the sample chat, drawn on this device.
+function drawHeroCards(stats) {
+  const deck = buildDeck(stats, { site: siteDomain() });
+  const pick = id => deck.find(c => c.id === id) || deck[0];
+  drawCard($('#hero-a'), pick('mvp'));
+  drawCard($('#hero-b'), pick('person-1'));
+}
+worker.postMessage({ type: 'preview' });
 
 function startFile(file) {
   if (!file) return;
