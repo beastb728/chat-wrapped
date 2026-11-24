@@ -4,27 +4,25 @@
 import { fmtDur } from './stats.js';
 
 export const W = 1080, H = 1920;
-const FONT = 'Inter, "SF Pro Display", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+const FONT = '"Helvetica Neue", Helvetica, Arial, Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-// One accent per card on a black canvas. Muted, not neon.
-const ACCENT = {
-  intro: '#ffffff',
-  mvp: '#bef264',
-  starters: '#fdba74',
-  speed: '#67e8f9',
-  hours: '#a5b4fc',
-  emojis: '#fcd34d',
-  words: '#c4b5fd',
-  streak: '#fda4af',
-  bigday: '#f9a8d4',
-  awards: '#fcd34d',
-  person: '#5eead4',
-  duo: '#fda4af',
-  outro: '#ffffff',
-  game: '#67e8f9',
+// Koffiracha-style palette: neon lime, black, white. Each card picks one.
+const LIME = '#e6fe52';
+const STYLES = {
+  lime: { bg: LIME, fg: '#000000', sub: 'rgba(0,0,0,0.72)', accent: '#000000', swoosh: '#ffffff' },
+  white: { bg: '#ffffff', fg: '#000000', sub: 'rgba(0,0,0,0.62)', accent: '#000000', swoosh: LIME },
+  black: { bg: '#000000', fg: '#ffffff', sub: 'rgba(255,255,255,0.7)', accent: LIME, swoosh: null },
 };
+const CARD_STYLE = {
+  intro: 'lime', mvp: 'white', duo: 'black', starters: 'black', speed: 'white', hours: 'lime',
+  emojis: 'white', words: 'black', streak: 'lime', bigday: 'black', awards: 'white', person: 'lime',
+  outro: 'black', game: 'lime',
+};
+const ACCENT = Object.fromEntries(Object.entries(CARD_STYLE).map(([k, v]) => [k, STYLES[v].accent]));
+let cur = STYLES.black; // style of the card being drawn
+const ink = a => hexA(cur.fg, a);
 
 const fmtNum = n => Math.round(n).toLocaleString('en');
 const fmtDate = ts => { const d = new Date(ts); return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`; };
@@ -35,10 +33,11 @@ const pct = x => `${Math.round(x * 100)}%`;
 function font(ctx, size, weight = 600) {
   ctx.font = `${Math.min(weight, 700)} ${size}px ${FONT}`;
   // Tight tracking on display sizes, like the site headline.
-  if ('letterSpacing' in ctx) ctx.letterSpacing = size >= 80 ? `${(-size * 0.035).toFixed(1)}px` : '0px';
+  if ('letterSpacing' in ctx) ctx.letterSpacing = `${(-size * (size >= 80 ? 0.05 : size >= 40 ? 0.02 : 0)).toFixed(1)}px`;
 }
 
-function text(ctx, str, x, y, { size = 60, weight = 600, color = '#fafafa', align = 'left', max = W - 160, min = 24, alpha = 1 } = {}) {
+function text(ctx, str, x, y, { size = 60, weight = 600, color = cur.fg, align = 'left', max = W - 160, min = 24, alpha = 1 } = {}) {
+  if (size >= 80) str = str.toUpperCase(); // display type is all caps
   let s = size;
   font(ctx, s, weight);
   while (ctx.measureText(str).width > max && s > min) { s -= 2; font(ctx, s, weight); }
@@ -51,7 +50,7 @@ function text(ctx, str, x, y, { size = 60, weight = 600, color = '#fafafa', alig
   return s;
 }
 
-function wrap(ctx, str, x, y, { size = 48, weight = 500, color = '#a1a1aa', max = W - 160, lh = 1.25, align = 'left', maxLines = 4, alpha = 1 } = {}) {
+function wrap(ctx, str, x, y, { size = 48, weight = 500, color = cur.sub, max = W - 160, lh = 1.25, align = 'left', maxLines = 4, alpha = 1 } = {}) {
   font(ctx, size, weight);
   const words = str.split(' ');
   const lines = [];
@@ -65,54 +64,22 @@ function wrap(ctx, str, x, y, { size = 48, weight = 500, color = '#a1a1aa', max 
   return y + Math.min(lines.length, maxLines) * size * lh;
 }
 
-function background(ctx) {
-  ctx.fillStyle = '#000';
+function background(ctx, style = cur, seed = 0) {
+  cur = style;
+  ctx.fillStyle = style.bg;
   ctx.fillRect(0, 0, W, H);
-  // Faint grid...
-  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  for (let x = 0; x <= W; x += 90) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
-  for (let y = 0; y <= H; y += 90) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
-  ctx.stroke();
-  // ...that fades out away from the top.
-  const fade = ctx.createRadialGradient(W / 2, 0, 0, W / 2, 0, H * 0.75);
-  fade.addColorStop(0, 'rgba(0,0,0,0)');
-  fade.addColorStop(0.55, 'rgba(0,0,0,0.85)');
-  fade.addColorStop(1, 'rgba(0,0,0,1)');
-  ctx.fillStyle = fade;
-  ctx.fillRect(0, 0, W, H);
-  // Soft light from the top.
-  const top = ctx.createRadialGradient(W / 2, -200, 0, W / 2, -200, 900);
-  top.addColorStop(0, 'rgba(255,255,255,0.14)');
-  top.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = top;
-  ctx.fillRect(0, 0, W, H);
-}
-
-/** Glowing planet horizon near the bottom, in the card's accent color. */
-function horizon(ctx, accent) {
-  const R = 2600, cy = H - 250 + R;
-  const glow = ctx.createRadialGradient(W / 2, H - 250, 0, W / 2, H - 250, 520);
-  glow.addColorStop(0, hexA(accent, 0.28));
-  glow.addColorStop(1, hexA(accent, 0));
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, H - 800, W, 560);
+  if (!style.swoosh) return;
+  // One big brush-stroke swoosh behind the type.
   ctx.save();
+  if (seed % 2) { ctx.translate(W, 0); ctx.scale(-1, 1); }
   ctx.beginPath();
-  ctx.arc(W / 2, cy, R, 0, Math.PI * 2);
-  ctx.fillStyle = '#000';
-  ctx.shadowColor = hexA(accent, 0.9);
-  ctx.shadowBlur = 70;
-  ctx.fill();
-  ctx.shadowBlur = 18;
-  ctx.fill();
-  ctx.restore();
-  ctx.beginPath();
-  ctx.arc(W / 2, cy, R, Math.PI * 1.25, Math.PI * 1.75);
-  ctx.strokeStyle = hexA(accent, 0.95);
-  ctx.lineWidth = 3;
+  ctx.moveTo(-200, 760);
+  ctx.bezierCurveTo(320, 160, 700, 1560, 1300, 900);
+  ctx.strokeStyle = style.swoosh;
+  ctx.lineWidth = 250;
+  ctx.lineCap = 'round';
   ctx.stroke();
+  ctx.restore();
 }
 
 function hexA(hex, a) {
@@ -121,26 +88,22 @@ function hexA(hex, a) {
 }
 
 function frame(ctx, o, theme) {
-  background(ctx);
-  horizon(ctx, ACCENT[theme]);
-  // Outlined pill label, like the site's eyebrow.
-  const label = `CHAT WRAPPED · ${o.label.toUpperCase()}`;
-  font(ctx, 26, 500);
-  if ('letterSpacing' in ctx) ctx.letterSpacing = '4px';
-  const lw = ctx.measureText(label).width;
-  ctx.strokeStyle = 'rgba(255,255,255,0.22)';
-  ctx.lineWidth = 2;
-  roundRect(ctx, 80, 92, lw + 56, 58, 29);
-  ctx.fillStyle = 'rgba(255,255,255,0.04)';
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = '#a1a1aa';
+  const style = STYLES[CARD_STYLE[theme]];
+  background(ctx, style, theme.length);
+  // Ticker-style header strip between two rules.
+  ctx.fillStyle = style.fg;
+  ctx.fillRect(0, 70, W, 3);
+  ctx.fillRect(0, 150, W, 3);
+  const label = `CHAT WRAPPED • ${o.label.toUpperCase()} • `;
+  font(ctx, 34, 700);
   ctx.textAlign = 'left';
-  ctx.fillText(label, 108, 131);
-  if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
-  // Footer: the link is how the next group finds the site.
-  text(ctx, o.site, W / 2, H - 120, { size: 38, weight: 600, align: 'center', max: W - 200 });
-  text(ctx, 'Made on-device. Your chat never left the phone.', W / 2, H - 72, { size: 26, weight: 400, align: 'center', color: '#71717a' });
+  const step = ctx.measureText(label).width;
+  for (let x = -20; x < W; x += step) ctx.fillText(label, x, 124);
+  // Solid footer band with the link: how the next group finds the site.
+  ctx.fillStyle = style.fg;
+  ctx.fillRect(0, H - 210, W, 210);
+  text(ctx, o.site, W / 2, H - 112, { size: 40, weight: 700, align: 'center', max: W - 160, color: style.bg });
+  text(ctx, 'MADE ON-DEVICE. YOUR CHAT NEVER LEFT THE PHONE.', W / 2, H - 62, { size: 24, weight: 600, align: 'center', color: style.bg === '#000000' ? '#000' : hexA(style.bg, 0.75) });
 }
 
 function roundRect(ctx, x, y, w, h, r) {
@@ -153,16 +116,19 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-function bars(ctx, rows, y, { accent = '#fff', valueFmt = fmtNum, rowH = 150, max } = {}) {
+function bars(ctx, rows, y, { accent = cur.accent, valueFmt = fmtNum, rowH = 150, max } = {}) {
   const top = max ?? Math.max(...rows.map(r => r.value), 1);
   rows.forEach((r, i) => {
     const yy = y + i * rowH;
-    text(ctx, r.label, 80, yy, { size: 44, weight: 500, max: 640, color: i === 0 ? '#fafafa' : '#d4d4d8' });
-    text(ctx, r.display ?? valueFmt(r.value), W - 80, yy, { size: 44, weight: 600, align: 'right', max: 300, color: i === 0 ? accent : '#d4d4d8' });
-    ctx.fillStyle = 'rgba(255,255,255,0.08)';
-    roundRect(ctx, 80, yy + 28, W - 160, 14, 7); ctx.fill();
-    ctx.fillStyle = i === 0 ? accent : 'rgba(255,255,255,0.45)';
-    roundRect(ctx, 80, yy + 28, Math.max(14, (W - 160) * (r.bar ?? r.value / top)), 14, 7); ctx.fill();
+    text(ctx, r.label.toUpperCase(), 80, yy, { size: 44, weight: 700, max: 640 });
+    text(ctx, r.display ?? valueFmt(r.value), W - 80, yy, { size: 44, weight: 700, align: 'right', max: 300 });
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = cur.fg;
+    roundRect(ctx, 80, yy + 22, W - 160, 26, 13);
+    ctx.fillStyle = cur.bg; ctx.fill(); ctx.stroke();
+    ctx.fillStyle = i === 0 ? (cur.bg === LIME ? '#000' : accent === '#000000' ? LIME : accent) : ink(0.85);
+    roundRect(ctx, 80, yy + 22, Math.max(26, (W - 160) * (r.bar ?? r.value / top)), 26, 13);
+    ctx.fill(); ctx.stroke();
   });
   return y + rows.length * rowH;
 }
@@ -174,7 +140,7 @@ function introCard(s, o) {
     frame(ctx, o, 'intro');
     text(ctx, s.year ? "Your chat's" : 'Your chat,', 80, 480, { size: 84, weight: 700 });
     text(ctx, s.year ? String(s.year) : 'all time', 70, 760, { size: 300, weight: 900, max: W - 140 });
-    text(ctx, 'Wrapped', 80, 930, { size: 150, weight: 900, color: '#8b8b93' });
+    text(ctx, 'Wrapped', 80, 930, { size: 150, weight: 900 });
     const rows = [
       [fmtNum(s.totals.messages), 'messages'],
       [fmtNum(s.totals.people), s.totals.people === 1 ? 'person' : 'people'],
@@ -241,7 +207,7 @@ function hoursCard(s, o) {
     const max = Math.max(...s.hours), x0 = 80, bw = (W - 160) / 24, base = 1450, hMax = 480;
     s.hours.forEach((v, h) => {
       const bh = Math.max(6, (v / max) * hMax);
-      ctx.fillStyle = h === peak ? ACCENT.hours : 'rgba(255,255,255,0.28)';
+      ctx.fillStyle = h === peak ? '#000' : 'rgba(0,0,0,0.28)';
       roundRect(ctx, x0 + h * bw + 3, base - bh, bw - 6, bh, 8); ctx.fill();
     });
     ['12a', '6a', '12p', '6p'].forEach((l, i) => text(ctx, l, x0 + i * 6 * bw + 4, base + 54, { size: 30, weight: 700, alpha: 0.7 }));
@@ -297,7 +263,7 @@ function streakCard(s, o) {
     text(ctx, fmtNum(s.streak.days), 70, 640, { size: 300, weight: 900, color: ACCENT.streak });
     text(ctx, `days in a row`, 80, 740, { size: 64, weight: 800 });
     text(ctx, `${fmtShort(s.streak.from)} – ${fmtDate(s.streak.to)}`, 80, 820, { size: 42, weight: 600, alpha: 0.85 });
-    ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.fillRect(80, 960, W - 160, 2);
+    ctx.fillStyle = cur.fg; ctx.fillRect(80, 960, W - 160, 3);
     text(ctx, 'Longest silence', 80, 1110, { size: 70, weight: 700 });
     if (silenceDays >= 1) {
       text(ctx, `${fmtNum(silenceDays)} days`, 70, 1300, { size: 170, weight: 900 });
@@ -356,7 +322,7 @@ function personCard(s, o, arch, idx) {
     ];
     tiles.forEach(([v, l], i) => {
       const tw = (W - 160 - 40) / 3, x = 80 + i * (tw + 20);
-      roundRect(ctx, x, 1360, tw, 220, 36); ctx.fillStyle = 'rgba(255,255,255,0.04)'; ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,0.16)'; ctx.lineWidth = 2; ctx.stroke();
+      roundRect(ctx, x, 1360, tw, 220, 36); ctx.fillStyle = cur.bg === LIME ? '#fff' : cur.bg; ctx.fill(); ctx.strokeStyle = cur.fg; ctx.lineWidth = 3; ctx.stroke();
       text(ctx, v, x + tw / 2, 1480, { size: 76, weight: 900, align: 'center', max: tw - 30 });
       text(ctx, l, x + tw / 2, 1540, { size: 32, weight: 700, align: 'center', alpha: 0.8 });
     });
@@ -379,7 +345,7 @@ function duoCard(s, o) {
     text(ctx, 'You two', 80, 340, { size: 120, weight: 900 });
     text(ctx, o.name(a.name), 80, 520, { size: 64, weight: 900, max: 440 });
     text(ctx, o.name(b.name), W - 80, 520, { size: 64, weight: 900, align: 'right', max: 440 });
-    ctx.fillStyle = 'rgba(255,255,255,0.1)'; roundRect(ctx, 80, 560, W - 160, 60, 30); ctx.fill();
+    ctx.fillStyle = ink(0.2); roundRect(ctx, 80, 560, W - 160, 60, 30); ctx.fill();
     ctx.fillStyle = ACCENT.duo; roundRect(ctx, 80, 560, Math.max(60, (W - 160) * a.share), 60, 30); ctx.fill();
     text(ctx, pct(a.share), 110, 604, { size: 36, weight: 900, color: '#000' });
     text(ctx, pct(b.share), W - 110, 604, { size: 36, weight: 900, align: 'right' });
@@ -394,8 +360,7 @@ function duoCard(s, o) {
 
 function outroCard(s, o) {
   return { id: 'outro', title: 'Outro', draw(ctx) {
-    background(ctx);
-    horizon(ctx, ACCENT.outro);
+    background(ctx, STYLES.black);
     text(ctx, "That's a", 80, 560, { size: 120, weight: 800 });
     text(ctx, 'wrap.', 80, 760, { size: 230, weight: 900, color: ACCENT.outro });
     wrap(ctx, 'Think your group chat is crazier? Prove it.', 80, 940, { size: 64, weight: 800 });

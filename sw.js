@@ -2,7 +2,7 @@
 // shared to the installed app from WhatsApp on Android (Web Share Target).
 // It never sends your chat anywhere: the shared file goes into a local cache
 // and is read (then deleted) by the page.
-const VERSION = 'cw-v5';
+const VERSION = 'cw-v6';
 const ASSETS = [
   './', 'index.html', 'privacy.html', 'styles.css', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png',
