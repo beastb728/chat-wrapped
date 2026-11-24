@@ -5,8 +5,8 @@ def png(path, n):
     for y in range(n):
         row = bytearray([0])
         for x in range(n):
-            t = (x + y) / (2 * n)
-            r, g, b = int(255 * (1 - t) + 123 * t), int(61 * (1 - t) + 47 * t), int(119 * (1 - t) + 247 * t)
+            t = max(0.0, 1 - ((x - n / 2) ** 2 + (y + n * 0.2) ** 2) ** 0.5 / n)
+            r = g = b = int(10 + 30 * t)
             cx, cy, rad = n * 0.5, n * 0.46, n * 0.27
             inside = (x - cx) ** 2 + (y - cy) ** 2 < rad ** 2
             tail = n * 0.30 < x < n * 0.42 and n * 0.62 < y < n * 0.75 and (x - n * 0.30) > (y - n * 0.62) * 0.9
@@ -14,7 +14,7 @@ def png(path, n):
                 r = g = b = 255
                 for dx in (-0.11, 0, 0.11):
                     if (x - (cx + dx * n)) ** 2 + (y - cy) ** 2 < (n * 0.035) ** 2:
-                        r, g, b = 123, 47, 247
+                        r, g, b = 0, 0, 0
             row += bytes((r, g, b))
         rows.append(bytes(row))
     raw = zlib.compress(b''.join(rows), 9)
