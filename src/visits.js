@@ -24,7 +24,7 @@ export function initVisits(el) {
       // A tiny number looks empty, so only show it once it's worth bragging about.
       const n = Number(String(d?.count ?? '').replace(/\D/g, ''));
       if (!(n >= MIN_TO_SHOW)) return;
-      el.textContent = `🔥 ${d.count} visits so far`;
+      el.textContent = `${d.count} visits so far`;
       el.hidden = false;
     })
     .catch(() => {});

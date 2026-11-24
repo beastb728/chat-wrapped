@@ -85,7 +85,7 @@ export function initGame({ $, show, worker, shareFiles, siteDomain }) {
   const currentPlayer = () => (g.players.length ? g.players[g.i % g.players.length] : null);
 
   function scoreText() {
-    if (!g.players.length) return `✅ ${g.log.filter(x => x.correct).length}`;
+    if (!g.players.length) return `Score ${g.log.filter(x => x.correct).length}`;
     return g.players.map(p => `${p} ${g.log.filter(x => x.player === p && x.correct).length}`).join(' · ');
   }
 
@@ -95,14 +95,14 @@ export function initGame({ $, show, worker, shareFiles, siteDomain }) {
     $('#g-round').textContent = `Round ${g.i + 1}/${g.rounds.length}`;
     $('#g-score').textContent = scoreText();
     const p = currentPlayer();
-    $('#g-turn').textContent = p ? `${p}'s turn` : 'Everyone guess!';
+    $('#g-turn').textContent = p ? `${p}'s turn` : 'Everyone guess';
     const q = $('#g-question');
     if (r.type === 'quote') {
       q.className = 'question';
       q.replaceChildren(el('p', { className: 'q-label', textContent: 'Who said this?' }), el('blockquote', { className: 'bubble', dir: 'auto', textContent: r.text }));
     } else {
       q.className = 'question emoji-q';
-      q.replaceChildren(el('p', { className: 'q-label', textContent: 'Bonus round: who sends this the most?' }), el('div', { className: 'big-emoji', textContent: r.emoji }));
+      q.replaceChildren(el('p', { className: 'q-label', textContent: 'Bonus round: who sends this emoji the most?' }), el('div', { className: 'big-emoji', textContent: r.emoji }));
     }
     $('#g-options').replaceChildren(...r.options.map((name, k) =>
       el('button', { type: 'button', className: 'opt', textContent: name, onclick: () => pick(name), dataset: { key: String(k + 1) } })));
@@ -121,12 +121,12 @@ export function initGame({ $, show, worker, shareFiles, siteDomain }) {
       if (b.textContent === r.answer) b.classList.add('right');
       else if (b.textContent === name) b.classList.add('wrong');
     }
-    const verdict = correct ? '✅ Correct!' : `❌ Nope, it was ${r.answer}`;
+    const verdict = correct ? 'Correct' : `Nope, it was ${r.answer}`;
     $('#g-reveal').textContent = r.type === 'quote'
       ? `${verdict} · sent ${fmtDate(r.ts)}`
       : `${verdict} · ${r.counts.map(([n, c]) => `${n} ${c}`).join(' · ')}`;
     $('#g-score').textContent = scoreText();
-    $('#g-next').textContent = g.i === g.rounds.length - 1 ? 'See results 🏁' : 'Next →';
+    $('#g-next').textContent = g.i === g.rounds.length - 1 ? 'See results' : 'Next';
     $('#g-next').hidden = false;
     $('#g-next').focus();
   }
@@ -150,7 +150,7 @@ export function initGame({ $, show, worker, shareFiles, siteDomain }) {
     const board = $('#g-board');
     board.hidden = !g.summary.scores.length;
     board.replaceChildren(...g.summary.scores.map((s, k) =>
-      el('li', {}, el('span', { textContent: `${['🥇', '🥈', '🥉'][k] ?? `${k + 1}.`} ${s.name}` }), el('b', { textContent: `${s.score}/${s.played}` }))));
+      el('li', {}, el('span', { textContent: `${k + 1}. ${s.name}` }), el('b', { textContent: `${s.score}/${s.played}` }))));
     show('game-end');
     renderCard();
   }

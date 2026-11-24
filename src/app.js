@@ -24,10 +24,10 @@ let armedAt = null;
 let requestsSinceArmed = 0;
 function renderNet() {
   const el = $('#net');
-  const offline = navigator.onLine ? '' : ' · ✈️ offline';
+  const offline = navigator.onLine ? '' : ' · offline';
   el.textContent = armedAt == null
-    ? `🛡️ Watch this counter. It stays at 0 after you open your chat${offline}`
-    : `🛡️ ${requestsSinceArmed} network request${requestsSinceArmed === 1 ? '' : 's'} since you opened your chat${offline}`;
+    ? `Network requests are counted here. It stays at 0 after you open your chat${offline}`
+    : `${requestsSinceArmed} network request${requestsSinceArmed === 1 ? '' : 's'} since you opened your chat${offline}`;
   el.classList.toggle('bad', requestsSinceArmed > 0);
 }
 if ('PerformanceObserver' in window) {
