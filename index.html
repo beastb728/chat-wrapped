@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Nothing on this page may contact any server. Your chat stays on your device. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; worker-src 'self'; manifest-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Chat Wrapped: your group chat's year, privately</title>
+  <meta name="description" content="Spotify-Wrapped-style stats for your WhatsApp chats. Runs 100% in your browser: nothing is uploaded, no login, works offline.">
+  <meta name="theme-color" content="#14061f">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="src/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./">💬 Chat Wrapped</a>
+    <a href="privacy.html">How privacy works</a>
+  </header>
+
+  <main>
+    <!-- HOME -->
+    <section id="screen-home" class="screen home">
+      <h1>Your group chat,<br><span class="grad">Wrapped.</span></h1>
+      <p class="lead">Who texts the most, who starts every conversation, who leaves everyone on read. Swipeable stat cards made for your Status and the group chat.</p>
+
+      <ul class="chips" aria-label="Privacy guarantees">
+        <li>🔒 Nothing uploaded</li>
+        <li>✈️ Works in airplane mode</li>
+        <li>🙅 No login, no password</li>
+        <li>🧾 Open source</li>
+      </ul>
+
+      <label id="drop" class="drop" for="file">
+        <input id="file" type="file" accept=".txt,.zip,text/plain,application/zip">
+        <span class="drop-icon">📂</span>
+        <strong>Choose your WhatsApp export</strong>
+        <span class="muted">.txt or .zip · or drop it here</span>
+      </label>
+      <button id="sample" class="btn ghost" type="button">✨ Try it with a sample chat</button>
+
+      <p class="tip">Don't trust us? Good. Load this page, <b>turn on airplane mode</b>, then choose your file. It still works, because nothing needs the internet.</p>
+
+      <div class="howto">
+        <details id="howto-android">
+          <summary>How to export on Android</summary>
+          <ol>
+            <li>Open the chat in WhatsApp</li>
+            <li>Tap <b>⋮</b> → <b>More</b> → <b>Export chat</b></li>
+            <li>Choose <b>Without media</b></li>
+            <li>Save it to your files (or share it straight to this site if you installed it as an app), then choose it above</li>
+          </ol>
+        </details>
+        <details id="howto-ios">
+          <summary>How to export on iPhone</summary>
+          <ol>
+            <li>Open the chat in WhatsApp and tap the chat name at the top</li>
+            <li>Scroll down → <b>Export Chat</b> → <b>Without Media</b></li>
+            <li>Choose <b>Save to Files</b></li>
+            <li>Come back here, tap <b>Choose your WhatsApp export</b> and pick the .zip. No need to unzip it</li>
+          </ol>
+        </details>
+      </div>
+    </section>
+
+    <!-- LOADING -->
+    <section id="screen-loading" class="screen center" hidden>
+      <div class="spinner" aria-hidden="true"></div>
+      <p id="load-stage">Opening file…</p>
+      <div class="bar"><div id="load-bar"></div></div>
+      <p class="muted small">All of this is happening on your device.</p>
+    </section>
+
+    <!-- ERROR -->
+    <section id="screen-error" class="screen" hidden>
+      <h2>Hmm, that didn't work</h2>
+      <p id="error-msg"></p>
+      <p id="error-hint" class="muted">Make sure you picked the file WhatsApp created with <b>Export chat</b>. On iPhone that's a .zip containing <code>_chat.txt</code>.</p>
+      <div id="error-sample-wrap" hidden>
+        <p>If it <i>is</i> a WhatsApp export, your format may be new to us. Here's the <b>shape</b> of the first lines with every letter replaced by “x”, so no names or words. Sending it helps us support your format:</p>
+        <pre id="error-sample"></pre>
+        <div class="row">
+          <button id="error-copy" class="btn ghost" type="button">Copy</button>
+          <a id="error-report" class="btn ghost" target="_blank" rel="noopener noreferrer">Report format ↗</a>
+        </div>
+      </div>
+      <button id="error-back" class="btn" type="button">← Try another file</button>
+    </section>
+
+    <!-- WRAPPED -->
+    <section id="screen-wrapped" class="screen wrapped" hidden>
+      <div class="viewer">
+        <div id="progress" class="progress"></div>
+        <canvas id="card" width="1080" height="1920" role="img"></canvas>
+        <button id="prev" class="nav prev" type="button" aria-label="Previous card">‹</button>
+        <button id="next" class="nav next" type="button" aria-label="Next card">›</button>
+      </div>
+
+      <div class="actions">
+        <button id="share-one" class="btn" type="button">Share this card</button>
+        <button id="share-all" class="btn ghost" type="button">Share all</button>
+        <button id="download-one" class="btn ghost" type="button" aria-label="Download this card">⬇︎</button>
+      </div>
+
+      <div class="controls">
+        <label>Period <select id="year"></select></label>
+        <label class="check"><input id="hide-names" type="checkbox"> Hide names</label>
+        <label class="check"><input id="show-words" type="checkbox" checked> Signature words</label>
+      </div>
+
+      <details class="advanced">
+        <summary>Dates look wrong?</summary>
+        <p id="format-info" class="muted small"></p>
+        <label>Read dates as
+          <select id="date-order">
+            <option value="DMY">Day / Month / Year</option>
+            <option value="MDY">Month / Day / Year</option>
+            <option value="YMD">Year / Month / Day</option>
+          </select>
+        </label>
+      </details>
+
+      <button id="start-over" class="btn link" type="button">Start over &amp; forget this chat</button>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p id="net" class="net" aria-live="polite"></p>
+    <p class="muted small">Cards show stats only, never your messages. <a href="privacy.html">Privacy</a></p>
+  </footer>
+</body>
+</html>
