@@ -22,6 +22,7 @@ const THEMES = {
   person: ['#2ec4b6', '#011627', '#ff9f1c'],
   duo: ['#ff4d6d', '#590d22', '#ffccd5'],
   outro: ['#111111', '#2b2d42', '#ef233c'],
+  game: ['#00b4d8', '#1b1464', '#ffd60a'],
 };
 
 const fmtNum = n => Math.round(n).toLocaleString('en');
@@ -395,4 +396,40 @@ export function drawCard(canvas, card) {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, W, H);
   card.draw(ctx);
+}
+
+/** Result card for "Who Said It?". Scores and names only, never message text. */
+export function buildGameCard(sum, { hideNames = false, site = 'chatwrapped.app' } = {}) {
+  const alias = new Map();
+  const name = n => {
+    if (!hideNames) return n;
+    if (!alias.has(n)) alias.set(n, `Person ${String.fromCharCode(65 + (alias.size % 26))}`);
+    return alias.get(n);
+  };
+  const o = { site, label: 'Who Said It?', name };
+  const rate = sum.total ? sum.correct / sum.total : 0;
+  const verdict = rate >= 0.8 ? 'Certified chat experts 🧠' : rate >= 0.5 ? 'You know each other… mostly 🤔' : 'Do you even read the chat? 💀';
+  return { id: 'game', title: 'Who Said It? result', draw(ctx) {
+    frame(ctx, o, 'game', 30);
+    text(ctx, '🕵️', 80, 400, { size: 200 });
+    text(ctx, sum.scores.length ? 'Final score' : 'We scored', 80, 560, { size: 80, weight: 800 });
+    text(ctx, `${sum.correct}/${sum.total}`, 70, 820, { size: 270, weight: 900, color: THEMES.game[2] });
+    wrap(ctx, verdict, 80, 930, { size: 56, weight: 800 });
+    let y = 1100;
+    if (sum.scores.length) {
+      sum.scores.slice(0, 4).forEach((p, i) => {
+        text(ctx, `${['🥇', '🥈', '🥉'][i] ?? '  '} ${name(p.name)}`, 80, y, { size: 56, weight: 800, max: 700 });
+        text(ctx, `${p.score}`, W - 80, y, { size: 56, weight: 900, align: 'right' });
+        y += 90;
+      });
+      y += 30;
+    }
+    if (sum.easiest) {
+      text(ctx, `😇 Easiest to spot: ${name(sum.easiest.name)}`, 80, y, { size: 44, weight: 700, max: W - 160 });
+      y += 80;
+    }
+    if (sum.hardest && sum.hardest.name !== sum.easiest?.name) {
+      text(ctx, `🥷 Total mystery: ${name(sum.hardest.name)}`, 80, y, { size: 44, weight: 700, max: W - 160 });
+    }
+  } };
 }

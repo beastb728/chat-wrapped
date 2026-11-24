@@ -1,15 +1,19 @@
 import { buildDeck, drawCard, W, H } from './cards.js';
 import { siteDomain, REPO_URL } from './config.js';
+import { initGame } from './game-ui.js';
 
 const $ = sel => document.querySelector(sel);
-const screens = ['home', 'loading', 'error', 'wrapped'];
-const show = name => screens.forEach(s => { $(`#screen-${s}`).hidden = s !== name; });
+const screens = ['home', 'loading', 'error', 'modes', 'wrapped', 'game-setup', 'game-review', 'game-play', 'game-end'];
+const show = name => {
+  screens.forEach(s => { $(`#screen-${s}`).hidden = s !== name; });
+  scrollTo(0, 0);
+};
 
 // Create the worker up front so no request happens after you pick a file.
 const worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
 
 const state = {
-  meta: null, years: [], stats: null, deck: [], index: 0,
+  meta: null, years: [], stats: null, deck: [], index: 0, mode: null,
   blobs: new Map(), statsReq: 0,
 };
 
@@ -46,13 +50,20 @@ worker.onmessage = ({ data }) => {
     state.meta = data.meta;
     state.years = data.years;
     setupControls(data);
-    requestStats();
+    game.setYears(data.years);
+    if (state.mode === 'wrapped') requestStats();
+    else {
+      $('#modes-info').textContent = `${data.count.toLocaleString('en')} messages from ${data.participants.length} people. Still only on this device.`;
+      show('modes');
+    }
   } else if (data.type === 'stats') {
     if (data.id !== state.statsReq) return;
     if (!data.stats) return showError({ message: 'No messages in this period.' });
     state.stats = data.stats;
     rebuildDeck(true);
     show('wrapped');
+  } else if (data.type === 'game') {
+    game.onGame(data.game);
   } else if (data.type === 'error') {
     showError(data);
   }
@@ -61,12 +72,16 @@ worker.onmessage = ({ data }) => {
 function startFile(file) {
   if (!file) return;
   arm();
+  state.mode = null;
+  state.stats = null;
   show('loading');
   worker.postMessage({ type: 'file', file });
 }
 
 function startSample() {
   arm();
+  state.mode = null;
+  state.stats = null;
   show('loading');
   worker.postMessage({ type: 'sample' });
 }
@@ -179,14 +194,19 @@ async function share(indices, button) {
   const ready = indices.every(i => state.blobs.has(i));
   const blobs = await Promise.all(indices.map(blobFor));
   const files = blobs.map((b, k) => new File([b], fileName(indices[k]), { type: 'image/png' }));
-  if (navigator.canShare?.({ files })) {
+  return shareFiles(files, ready, button, 'Our chat, Wrapped 👀');
+}
+
+/** Share images via the OS share sheet (straight into WhatsApp/Instagram), else download. */
+async function shareFiles(files, ready, button, caption, forceDownload = false) {
+  if (!forceDownload && navigator.canShare?.({ files })) {
     if (!ready) {
       // We had to render first, so the tap may have expired. Ask for one more tap.
-      flash(button, 'Ready! Tap again');
+      if (button) flash(button, 'Ready! Tap again');
       return;
     }
     try {
-      await navigator.share({ files, text: `Our chat, Wrapped 👀 Get yours (100% private): https://${siteDomain()}` });
+      await navigator.share({ files, text: `${caption} Get yours (100% private): https://${siteDomain()}` });
     } catch (e) {
       if (e.name !== 'AbortError') download(files);
     }
@@ -228,13 +248,32 @@ $('#date-order').addEventListener('change', e => {
 
 function startOver() {
   worker.postMessage({ type: 'clear' });
-  Object.assign(state, { meta: null, years: [], stats: null, deck: [], index: 0 });
+  Object.assign(state, { meta: null, years: [], stats: null, deck: [], index: 0, mode: null });
+  game.reset();
   state.blobs.clear();
   prerenderToken++;
   $('#file').value = '';
   show('home');
 }
-$('#start-over').addEventListener('click', startOver);
+document.querySelectorAll('.start-over').forEach(b => b.addEventListener('click', startOver));
+document.addEventListener('click', e => {
+  const back = e.target.closest('[data-back]');
+  if (back) show(back.dataset.back);
+});
+
+// ---------------------------------------------------------------------------
+// Modes
+const game = initGame({ $, show, worker, shareFiles, siteDomain });
+$('#mode-wrapped').addEventListener('click', () => {
+  state.mode = 'wrapped';
+  if (state.stats) return show('wrapped');
+  show('loading');
+  requestStats();
+});
+$('#mode-game').addEventListener('click', () => {
+  state.mode = 'game';
+  show('game-setup');
+});
 $('#error-back').addEventListener('click', startOver);
 $('#error-copy').addEventListener('click', async e => {
   try { await navigator.clipboard.writeText($('#error-sample').textContent); flash(e.currentTarget, 'Copied ✓'); }

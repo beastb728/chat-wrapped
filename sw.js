@@ -2,12 +2,13 @@
 // shared to the installed app from WhatsApp on Android (Web Share Target).
 // It never sends your chat anywhere: the shared file goes into a local cache
 // and is read (then deleted) by the page.
-const VERSION = 'cw-v1';
+const VERSION = 'cw-v2';
 const ASSETS = [
   './', 'index.html', 'privacy.html', 'styles.css', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png',
   'src/app.js', 'src/worker.js', 'src/parser.js', 'src/load.js', 'src/zip.js',
   'src/stats.js', 'src/stopwords.js', 'src/cards.js', 'src/sample.js', 'src/config.js',
+  'src/game.js', 'src/game-ui.js',
 ];
 
 self.addEventListener('install', e => {

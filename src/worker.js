@@ -4,6 +4,7 @@ import { parseChat } from './parser.js';
 import { fileToChatText } from './load.js';
 import { computeStats, chatYears } from './stats.js';
 import { generateSampleChat } from './sample.js';
+import { buildGame } from './game.js';
 
 let text = null;
 let parsed = null;
@@ -17,7 +18,7 @@ function parse(dateOrder) {
     meta: parsed.meta,
     participants: parsed.participants,
     years: chatYears(parsed.messages),
-    count: parsed.messages.length,
+    count: parsed.messages.filter(m => m.type !== 'system').length,
   });
 }
 
@@ -38,6 +39,9 @@ self.onmessage = async ({ data }) => {
         break;
       case 'stats':
         post({ type: 'stats', id: data.id, stats: computeStats(parsed.messages, { year: data.year }) });
+        break;
+      case 'game':
+        post({ type: 'game', game: buildGame(parsed.messages, { rounds: data.rounds, year: data.year, spicy: data.spicy }) });
         break;
       case 'clear':
         text = null;

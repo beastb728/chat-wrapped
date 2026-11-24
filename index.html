@@ -25,7 +25,7 @@
     <!-- HOME -->
     <section id="screen-home" class="screen home">
       <h1>Your group chat,<br><span class="grad">Wrapped.</span></h1>
-      <p class="lead">Who texts the most, who starts every conversation, who leaves everyone on read. Swipeable stat cards made for your Status and the group chat.</p>
+      <p class="lead">Who texts the most, who starts every conversation, who leaves everyone on read. Swipeable stat cards made for your Status, plus a <b>Who Said It?</b> party game for the group.</p>
 
       <ul class="chips" aria-label="Privacy guarantees">
         <li>🔒 Nothing uploaded</li>
@@ -90,6 +90,86 @@
       <button id="error-back" class="btn" type="button">← Try another file</button>
     </section>
 
+    <!-- MODE PICKER -->
+    <section id="screen-modes" class="screen" hidden>
+      <h2>Your chat is ready ✨</h2>
+      <p id="modes-info" class="muted"></p>
+      <div class="modes">
+        <button id="mode-wrapped" class="mode" type="button">
+          <span class="mode-icon">📊</span>
+          <strong>Chat Wrapped</strong>
+          <span>Swipeable stat cards for your Status and the group</span>
+        </button>
+        <button id="mode-game" class="mode" type="button">
+          <span class="mode-icon">🕵️</span>
+          <strong>Who Said It?</strong>
+          <span>Party game: real messages, guess who sent them</span>
+        </button>
+      </div>
+      <button class="btn link start-over" type="button">Start over &amp; forget this chat</button>
+    </section>
+
+    <!-- GAME: SETUP -->
+    <section id="screen-game-setup" class="screen" hidden>
+      <button class="btn link back" type="button" data-back="modes">← Back</button>
+      <h2>🕵️ Who Said It?</h2>
+      <p class="muted">Pass the phone around (or cast it to the TV). Each turn you see a real message from the chat. Guess who sent it.</p>
+      <form id="player-form" class="player-form">
+        <input id="player-name" placeholder="Add a player (optional)" maxlength="20" autocomplete="off" aria-label="Player name">
+        <button class="btn ghost" type="submit">Add</button>
+      </form>
+      <ul id="players" class="chips players"></ul>
+      <p id="players-hint" class="muted small">No players? Play as one team and shout your answers.</p>
+      <div class="setup-grid">
+        <label>Rounds
+          <select id="game-rounds"><option>10</option><option selected>15</option><option>25</option></select>
+        </label>
+        <label>Period <select id="game-year"></select></label>
+        <label class="check"><input id="game-spicy" type="checkbox"> Include spicy messages 🌶️</label>
+      </div>
+      <p class="muted small">Messages with links, emails or phone numbers are never shown.</p>
+      <p id="game-msg" class="tip" hidden></p>
+      <button id="game-deal" class="btn wide" type="button">Deal the messages</button>
+    </section>
+
+    <!-- GAME: HOST CHECK -->
+    <section id="screen-game-review" class="screen" hidden>
+      <button class="btn link back" type="button" data-back="game-setup">← Back</button>
+      <h2>Host check 👀</h2>
+      <p class="muted">Want to make sure nothing embarrassing goes on screen? Skim the messages first (no names shown) and tap <b>Swap</b> on anything that should stay private. Or skip it so you can play too.</p>
+      <ol id="review-list" class="review" hidden></ol>
+      <div class="row">
+        <button id="game-review-toggle" class="btn ghost" type="button">Show messages</button>
+        <button id="game-start" class="btn" type="button">Start the game</button>
+      </div>
+    </section>
+
+    <!-- GAME: PLAY -->
+    <section id="screen-game-play" class="screen game" hidden>
+      <div class="game-top"><span id="g-round"></span><span id="g-score"></span></div>
+      <p id="g-turn" class="turn"></p>
+      <div id="g-question" class="question"></div>
+      <div id="g-options" class="options"></div>
+      <p id="g-reveal" class="reveal" aria-live="polite"></p>
+      <button id="g-next" class="btn wide" type="button" hidden>Next →</button>
+      <button id="g-quit" class="btn link" type="button">End game</button>
+    </section>
+
+    <!-- GAME: RESULTS -->
+    <section id="screen-game-end" class="screen wrapped" hidden>
+      <ol id="g-board" class="board" hidden></ol>
+      <div class="viewer"><canvas id="game-card" width="1080" height="1920" role="img" aria-label="Game result card"></canvas></div>
+      <div class="actions">
+        <button id="game-share" class="btn" type="button">Share result</button>
+        <button id="game-download" class="btn ghost" type="button" aria-label="Download result card">⬇︎</button>
+      </div>
+      <label class="check"><input id="game-hide" type="checkbox"> Hide names</label>
+      <div class="row">
+        <button id="game-again" class="btn ghost" type="button">Play again</button>
+        <button class="btn ghost" type="button" data-back="modes">Other modes</button>
+      </div>
+    </section>
+
     <!-- WRAPPED -->
     <section id="screen-wrapped" class="screen wrapped" hidden>
       <div class="viewer">
@@ -123,7 +203,10 @@
         </label>
       </details>
 
-      <button id="start-over" class="btn link" type="button">Start over &amp; forget this chat</button>
+      <div class="row">
+        <button class="btn ghost" type="button" data-back="modes">← Other modes</button>
+        <button class="btn link start-over" type="button">Start over &amp; forget this chat</button>
+      </div>
     </section>
   </main>
 
