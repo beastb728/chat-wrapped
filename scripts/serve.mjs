@@ -10,7 +10,7 @@ const types = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.svg': 'image/svg+xml', '.json': 'application/json',
 };
-const CSP = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; worker-src 'self'; manifest-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
+const CSP = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https://*.goatcounter.com; worker-src 'self'; manifest-src 'self'; connect-src 'self' https://*.goatcounter.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
 
 createServer(async (req, res) => {
   let path = decodeURIComponent(new URL(req.url, 'http://x').pathname);

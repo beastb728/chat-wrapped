@@ -1,8 +1,8 @@
-# Netlify / Cloudflare Pages headers. connect-src 'self' is only needed by the
-# service worker (sw.js) to cache the app's own files for offline use; the page
-# itself also sets connect-src 'none' in its <meta> CSP.
+# Netlify / Cloudflare Pages headers (GitHub Pages ignores this file and relies on
+# the <meta> CSP in each page). connect-src 'self' is only for the service worker
+# caching the app's own files; goatcounter.com is the optional visit counter.
 /*
-  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; worker-src 'self'; manifest-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https://*.goatcounter.com; worker-src 'self'; manifest-src 'self'; connect-src 'self' https://*.goatcounter.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
   Referrer-Policy: no-referrer
   X-Content-Type-Options: nosniff
   Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()

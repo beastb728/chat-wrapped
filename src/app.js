@@ -1,6 +1,7 @@
 import { buildDeck, drawCard, W, H } from './cards.js';
 import { siteDomain, REPO_URL } from './config.js';
 import { initGame } from './game-ui.js';
+import { initVisits } from './visits.js';
 
 const $ = sel => document.querySelector(sel);
 const screens = ['home', 'loading', 'error', 'modes', 'wrapped', 'game-setup', 'game-review', 'game-play', 'game-end'];
@@ -39,6 +40,8 @@ addEventListener('online', renderNet);
 addEventListener('offline', renderNet);
 const arm = () => { if (armedAt == null) { armedAt = performance.now(); renderNet(); } };
 renderNet();
+// Visit counter: runs now, at page load, before any chat can be opened.
+initVisits($('#visits'));
 
 // ---------------------------------------------------------------------------
 // Worker messages

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <!-- Nothing on this page may contact any server. Your chat stays on your device. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; worker-src 'self'; manifest-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https://*.goatcounter.com; worker-src 'self'; manifest-src 'self'; connect-src https://*.goatcounter.com; base-uri 'none'; form-action 'none'">
   <meta name="referrer" content="no-referrer">
   <title>Chat Wrapped: your group chat's year, privately</title>
   <meta name="description" content="Spotify-Wrapped-style stats for your WhatsApp chats. Runs 100% in your browser: nothing is uploaded, no login, works offline.">
@@ -33,6 +33,7 @@
         <li>🙅 No login, no password</li>
         <li>🧾 Open source</li>
       </ul>
+      <p id="visits" class="visits" hidden></p>
 
       <label id="drop" class="drop" for="file">
         <input id="file" type="file" accept=".txt,.zip,text/plain,application/zip">
